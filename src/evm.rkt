@@ -1,8 +1,7 @@
 #lang rosette
 
-(require "decoder.rkt")
-(require "core.rkt")
-(require binaryio)
+(require "core.rkt"
+         binaryio)
 
 (provide (all-defined-out))
 
@@ -51,8 +50,10 @@
 (define (init-transaction [code #"\0"]) 
   (transaction 0 0 0 #"" 0 0 code 0 #t))
 
-(define (init-environment) 
-  (environment (list (init-transaction (read-code "../code.tmp"))) (init-machine-state) #(0 (init-a-system-state))))
+; (define (init-environment)
+  ; (environment (list (init-transaction (read-code "../code.tmp"))) (init-machine-state) #(0 (init-a-system-state))))
 
-(define e (init-environment))
-(interpret e)
+; (define e (init-environment))
+; (interpret e)
+
+(define (exec code transactions) '())
