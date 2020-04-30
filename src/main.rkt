@@ -2,7 +2,7 @@
 
 (require "evm.rkt"
          "core.rkt"
-         "decoder.rkt")
+         "utils/decoder.rkt")
 
 ; (define (prepare-environment filename)
   ; (define code (read-code filename))
