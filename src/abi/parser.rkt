@@ -1,8 +1,12 @@
 #lang racket
 
-(require megaparsack megaparsack/text)
-(require data/monad)
-(require data/applicative)
+(require megaparsack 
+         megaparsack/text
+         data/monad
+         data/applicative)
+
+(provide parse-parameters)
+
 
 (define integer-type-name/p 
   (do [name <- (or/p (string/p "int")
@@ -59,5 +63,6 @@
   (char/p #\))
   (pure params)))
 
+(define (parse-parameters params)
+ (parse-string parameters/p params))
 
-(parse-string parameters/p "(uint256[123][123][],uint256)")
