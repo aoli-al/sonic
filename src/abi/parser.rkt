@@ -28,7 +28,7 @@
    (pure (list (string->symbol name) bits decimal))))
 
 
-(define elementary-type-name
+(define elementary-type-name/p
   (or/p (try/p (do [name <- (or/p (string/p "bool")
                                   (string/p "address")
                                   (string/p "string")
@@ -38,5 +38,19 @@
         (try/p bytes-type-name/p)
         (try/p integer-type-name/p)))
 
+(define array-type-name/p
+  (do [elem <- elementary-type-name/p]
+    [indices <- (many+/p          
+                  (do (char/p #\[)
+                    [size <- (or/p (try/p integer/p)
+                                   (pure 'none))]
+                    (char/p #\])
+                    (pure size)))]
+    (pure (list elem indices))))
 
-(parse-string elementary-type-name "string")
+(define type-name/p
+ (or/p array-type-name/p
+  elementary-type-name/p))
+
+
+(parse-string array-type-name/p "uint256[123][123][]")
