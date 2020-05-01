@@ -49,8 +49,15 @@
     (pure (list elem indices))))
 
 (define type-name/p
- (or/p array-type-name/p
+ (or/p (try/p array-type-name/p)
   elementary-type-name/p))
 
 
-(parse-string array-type-name/p "uint256[123][123][]")
+(define parameters/p
+ (do (char/p #\()
+  [params <- (many/p type-name/p #:sep (char/p #\,))]
+  (char/p #\))
+  (pure params)))
+
+
+(parse-string parameters/p "(uint256[123][123][],uint256)")
