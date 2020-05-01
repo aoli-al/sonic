@@ -42,6 +42,12 @@
         (try/p bytes-type-name/p)
         (try/p integer-type-name/p)))
 
+
+(define (build-array-type-name elem-type indices)
+ (define t (list 'array elem-type (car indices)))
+ (match (cdr indices)))
+ 
+
 (define array-type-name/p
   (do [elem <- elementary-type-name/p]
     [indices <- (many+/p          
@@ -50,7 +56,7 @@
                                    (pure 'none))]
                     (char/p #\])
                     (pure size)))]
-    (pure (list elem indices))))
+    (pure (list 'array elem indices))))
 
 (define type-name/p
  (or/p (try/p array-type-name/p)
@@ -66,3 +72,4 @@
 (define (parse-parameters params)
  (parse-string parameters/p params))
 
+(parse-parameters "(uint256[])")

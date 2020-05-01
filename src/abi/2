@@ -28,7 +28,7 @@
     [(list 'int i)
      (define-symbolic x (bitvector 256))
      x] 
-     [(list 'array t size)]))
+     ))
 
 (define (type-size type)
  (match type 
@@ -36,8 +36,8 @@
    [(list 'int _) 32]
    [(list 'array t size)
    (match size 
-    ['none 32]
-    [v (* v (type-size t))])]))
+    [('none) 32]
+    [(v) v])]))
 
 
 (define (make-symbolic-data signature)
