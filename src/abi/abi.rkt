@@ -11,38 +11,40 @@
 
 (define (make-symbolic-arguments params) 
   (define parsed-params (parse-parameters params))
-  parsed-params)
+  (make-symbolic-arguments-recursive parsed-params))
 
-(define (make-symbolic-arguments-recursive params)
-  (match params
-    [(list a b ...)
-     #""]
-    ['()
-     #""]))
 
-(define (make-symbolic-argument param)
+(define (dynamic-type? type)
+ (match type 
+  [(list 'bytes 'none) #t]
+  [(list 'array _ 'none) #t]
+  [(list 'array t _) (dynamic-type? t)]
+  [else #f]))
+
+(define (make-symbolic-arguments-recursive param)
   (foldr (lambda (prev cur) 
            (match-define (list prev-head prev-tail) prev)
-           (match cur 
-             [(list 'uint _) (define-symbolic x (bitvector 256))
-                             (list (bitvector->bits x) '())]
-             [(list 'int _) (define-symbolic x (bitvector 256))
-                             (list (bitvector->bits x) '())]
-             [(list 'array type size) (match size 
-               ['none list ((bv (+ (type-size param) (length prev-tail)) 256))])]))
-         ; [(list 'int _) (define-symbolic x (bitvector 256))]
-         ; [(list 'array type size)
-         ; (define-symbolic x (bitvector 256))]
-         ; ))
-         (list #"" #"") param))
-  ; (match param
-    ; [(list 'uint i)
-     ; (define-symbolic x (bitvector 256))
-     ; x]
-    ; [(list 'int i)
-     ; (define-symbolic x (bitvector 256))
-     ; x]
-    ; [(list 'array t size) '()]))
+           (match-define (list cur-head cur-tail)
+             (match cur 
+               [(list 'uint _) (define-symbolic x (bitvector 256))
+                               (list (bitvector->bits x) '())]
+               [(list 'int _) (define-symbolic x (bitvector 256))
+                              (list (bitvector->bits x) '())]
+               [(list 'array type size) 
+                (match size
+                  ['none (list 
+                           (bitvector->bits (bv (+ (type-size param) (length prev-tail)) 256))
+                           (append (bitvector->bits (bv dyn-variable-size 256))
+                                   (make-symbolic-arguments-recursive (make-list dyn-variable-size type))))]
+                  [s (if (dynamic-type? type) 
+                       (list 
+                         (bitvector->bits (bv (+ (type-size param) (length prev-tail)) 256))
+                         (make-symbolic-arguments-recursive (make-list s type)))
+                       (list 
+                         (make-symbolic-arguments-recursive (make-list s type))
+                         '()))])]))
+           (list (append prev-head cur-head) (append prev-tail cur-tail)))
+         (list '() '()) param))
 
 (define (type-size type)
  (match type 
