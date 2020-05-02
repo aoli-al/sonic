@@ -20,15 +20,29 @@
     ['()
      #""]))
 
-(define (make-symbolic-argument param offset)
-  (match param
-    [(list 'uint i)
-     (define-symbolic x (bitvector 256))
-     x] 
-    [(list 'int i)
-     (define-symbolic x (bitvector 256))
-     x] 
-     [(list 'array t size)]))
+(define (make-symbolic-argument param)
+  (foldr (lambda (prev cur) 
+           (match-define (list prev-head prev-tail) prev)
+           (match cur 
+             [(list 'uint _) (define-symbolic x (bitvector 256))
+                             (list (bitvector->bits x) '())]
+             [(list 'int _) (define-symbolic x (bitvector 256))
+                             (list (bitvector->bits x) '())]
+             [(list 'array type size) (match size 
+               ['none list ((bv (+ (type-size param) (length prev-tail)) 256))])]))
+         ; [(list 'int _) (define-symbolic x (bitvector 256))]
+         ; [(list 'array type size)
+         ; (define-symbolic x (bitvector 256))]
+         ; ))
+         (list #"" #"") param))
+  ; (match param
+    ; [(list 'uint i)
+     ; (define-symbolic x (bitvector 256))
+     ; x]
+    ; [(list 'int i)
+     ; (define-symbolic x (bitvector 256))
+     ; x]
+    ; [(list 'array t size) '()]))
 
 (define (type-size type)
  (match type 

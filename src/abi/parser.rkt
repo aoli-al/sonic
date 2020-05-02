@@ -45,7 +45,9 @@
 
 (define (build-array-type-name elem-type indices)
  (define t (list 'array elem-type (car indices)))
- (match (cdr indices)))
+ (match (cdr indices)
+  ['() t]
+  [lst (build-array-type-name t lst)]))
  
 
 (define array-type-name/p
@@ -56,7 +58,7 @@
                                    (pure 'none))]
                     (char/p #\])
                     (pure size)))]
-    (pure (list 'array elem indices))))
+    (pure (build-array-type-name elem indices))))
 
 (define type-name/p
  (or/p (try/p array-type-name/p)
@@ -72,4 +74,4 @@
 (define (parse-parameters params)
  (parse-string parameters/p params))
 
-(parse-parameters "(uint256[])")
+(parse-parameters "(uint256[1][123])")
