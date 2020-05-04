@@ -64,3 +64,4 @@
       (make-symbolic-arguments params))]))
 
 (make-symbolic-data "batchTransfer(uint256)")
+
