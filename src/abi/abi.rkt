@@ -11,7 +11,9 @@
 
 (define (make-symbolic-arguments params) 
   (define parsed-params (parse-parameters params))
-  (make-symbolic-arguments-recursive parsed-params))
+  (match parsed-params
+    [(list 'success p) (make-symbolic-arguments-recursive p)]
+    [else (print "error")]))
 
 
 (define (dynamic-type? type)
