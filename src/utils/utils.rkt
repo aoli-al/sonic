@@ -1,17 +1,23 @@
-#lang racket
+#lang rosette
 
-(require binaryio)
-(require racket/runtime-path)
+(require binaryio
+         racket/runtime-path 
+         file/sha1)
 
-(provide keccak-256)
+(provide (all-defined-out))
 
 (define-runtime-path script-path "sha3.py")
 (define script-path-string (some-system-path->string script-path))
 
 (define (keccak-256 bs)
-  (with-input-from-bytes bs
-                         (lambda ()
-                           (with-output-to-bytes
+  (hex-string->bytes
+    (bytes->string/utf-8
+      (with-input-from-bytes bs
                              (lambda ()
-                               (system (string-append "python3 " script-path-string)))))))
+                               (with-output-to-bytes
+                                 (lambda ()
+                                   (system (string-append "python3 " script-path-string)))))))))
+
+(define (bytes->bitvector bs) 
+ (map (lambda (b) (bv b 8)) bs))
 

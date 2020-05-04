@@ -73,5 +73,3 @@
 
 (define (parse-parameters params)
  (parse-string parameters/p params))
-
-(parse-parameters "(uint256[1][123])")
