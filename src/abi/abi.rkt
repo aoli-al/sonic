@@ -62,7 +62,6 @@
 (define (make-symbolic-data signature)
   (match signature
     [(regexp #rx"([a-zA-Z_][a-zA-Z_0-9]*)(\\(.*\\))" (list func _ params)) 
-     ; (make-symbolic-arguments params)]))
      (append
        (function-hash func)
        (make-symbolic-arguments params))]))
