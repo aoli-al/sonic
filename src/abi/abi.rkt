@@ -1,6 +1,7 @@
 #lang rosette
 
 (require "../utils/utils.rkt"
+         "../utils/bitvector.rkt"
          "parser.rkt"
          file/sha1
          megaparsack)
@@ -29,18 +30,18 @@
            (match-define (list cur-head cur-tail)
              (match cur 
                [(list 'uint _) (define-symbolic x (bitvector 256))
-                               (list (bitvector->bits x) '())]
+                               (list (bitvector->bytes x) '())]
                [(list 'int _) (define-symbolic x (bitvector 256))
-                              (list (bitvector->bits x) '())]
+                              (list (bitvector->bytes x) '())]
                [(list 'array type size) 
                 (match size
                   ['none (list 
-                           (bitvector->bits (bv (+ (type-size param) (length prev-tail)) 256))
-                           (append (bitvector->bits (bv dyn-variable-size 256))
+                           (bitvector->bytes (bv (+ (type-size param) (length prev-tail)) 256))
+                           (append (bitvector->bytes (bv dyn-variable-size 256))
                                    (make-symbolic-arguments-recursive (make-list dyn-variable-size type))))]
                   [s (if (dynamic-type? type) 
                        (list 
-                         (bitvector->bits (bv (+ (type-size param) (length prev-tail)) 256))
+                         (bitvector->bytes (bv (+ (type-size param) (length prev-tail)) 256))
                          (make-symbolic-arguments-recursive (make-list s type)))
                        (list 
                          (make-symbolic-arguments-recursive (make-list s type))
