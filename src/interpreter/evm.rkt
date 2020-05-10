@@ -1,6 +1,6 @@
 #lang rosette
 
-(require "core.rkt"
+(require "../core/core.rkt"
          binaryio)
 
 (provide (all-defined-out))

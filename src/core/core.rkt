@@ -9,6 +9,11 @@
 (struct a-system-state (value store code) #:mutable #:transparent)
 (struct environment (transactions machine-state system-state) #:mutable #:transparent)
 
+(define (generate-address)
+  (let ([n 1])
+    (lambda ()
+      (set! n (add1 n))
+      n)))
 
 (define (instruction-from-byte byte)
   (case byte
