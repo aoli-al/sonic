@@ -6,6 +6,8 @@
          file/sha1
          megaparsack)
 
+(provide make-symbolic-data)
+
 (define dyn-variable-size 3)
 
 (define (function-hash func)
