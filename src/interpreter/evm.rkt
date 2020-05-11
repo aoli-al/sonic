@@ -5,9 +5,8 @@
 
 (provide (all-defined-out))
 
-(define (interpret e)
+(define (interpret e mu)
   (match-define (list inst ops) (fetch e))
-  (define mu (environment-machine-state e))
   (define stack (machine-state-stack mu))
   (case inst
     [(push)
@@ -15,9 +14,7 @@
      ))
 
 
-(define (fetch e) 
-  (define mu (environment-machine-state e))
-  (define t (car (environment-transactions e)))
+(define (fetch e mu t) 
   (define c (transaction-code t))
   (define pc (machine-state-pc mu))
   (define inst (instruction-from-byte (bytes-ref c pc)))
@@ -44,16 +41,26 @@
 (define (init-machine-state [gas 300000])
   (machine-state gas 0 '#() 0 '()))
 
-(define (init-a-system-state [code #""])
-  (a-system-state 0 '#() code))
+(define (exec-instruction env mu t inst) 
+  (define stack (machine-state-stack mu))
+  (match-define (list i ops) inst)
+  (match i
+    ['push (set! stack (append ops stack))]
+    ['mstore (print ops)]
+    )
+  (set-machine-state-stack! mu stack)
+  (if (member i '(stop revert return))
+   'stop 'continue))
 
-(define (init-transaction [code #"\0"]) 
-  (transaction 0 0 0 #"" 0 0 code 0 #t))
+(define (exec-transaction env t) 
+ (define mu (init-machine-state))
+ (define run (lambda (env mu t)
+  (define inst (fetch env mu t))
+  (define res (exec-instruction env mu t inst))
+  (when (equal? res 'continue)
+   (run env mu t))))
+ (run env mu t))
 
-; (define (init-environment)
-  ; (environment (list (init-transaction (read-code "../code.tmp"))) (init-machine-state) #(0 (init-a-system-state))))
-
-; (define e (init-environment))
-; (interpret e)
-
-(define (exec code transactions) '())
+(define (exec env pt) 
+  (for ([t pt])
+    (exec-transaction env t)))

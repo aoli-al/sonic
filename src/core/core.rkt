@@ -7,7 +7,7 @@
 (struct transaction (code-address sender-address gas-price input execute-address value code depth write-permission) #:transparent)
 (struct machine-state (gas pc memory active-memory stack) #:mutable #:transparent)
 (struct a-system-state (value store code) #:mutable #:transparent)
-(struct environment (transactions machine-state system-state) #:mutable #:transparent)
+(struct environment (transactions system-state) #:mutable #:transparent)
 
 (define generate-address
   (let ([n 1])

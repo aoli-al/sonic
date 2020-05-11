@@ -31,15 +31,14 @@
     filename))
 
 (define (main source)
-  (define env (environment '() (init-machine-state) (make-hash)))
+  (define env (environment '() (make-hash)))
   (define code-addr (create-contract-account env source))
   (define addr (create-account env #:value 10000000))
   (define t (transaction code-addr addr 1 
                          (make-symbolic-data (option/function)) addr 0 
                          (a-system-state-code (dict-ref (environment-system-state env) code-addr))
                          0 #t))
-  (set-environment-transactions! env (list t))
-  env)
+  (exec env (list t)))
 
 (let [(filename (parse-command-line-options))]
   (main filename))
