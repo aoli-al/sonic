@@ -11,12 +11,12 @@
 
 (define (create-account 
           env
-          #:value [value 0] 
+          #:value [value (bv 0 256)] 
           #:store [store '#()] 
           #:code [code #"\0"])
   (define addr (generate-address))
   (dict-set! (environment-system-state env)
-             addr (a-system-state 0 '#() code))
+             addr (a-system-state value store code))
   addr)
 
 (define option/function (make-parameter #f))
@@ -33,9 +33,9 @@
 (define (main source)
   (define env (environment '() (make-hash)))
   (define code-addr (create-contract-account env source))
-  (define addr (create-account env #:value 10000000))
-  (define t (transaction code-addr addr 1 
-                         (make-symbolic-data (option/function)) addr 0 
+  (define addr (create-account env #:value (bv 10000000 256)))
+  (define t (transaction code-addr addr (bv 1 256)
+                         (make-symbolic-data (option/function)) addr (bv 0 256)
                          (a-system-state-code (dict-ref (environment-system-state env) code-addr))
                          0 #t))
   (exec env (list t)))

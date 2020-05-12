@@ -1,6 +1,8 @@
 #lang rosette
 
 (require "../core/core.rkt"
+         "../core/store.rkt"
+         "../utils/bitvector.rkt"
          binaryio)
 
 (provide (all-defined-out))
@@ -26,9 +28,9 @@
   (define op 
     (case (list (positive? op-size) (positive? pops))
       ['(#t #f)
-       (list (bytes->integer 
-               (subbytes c pc end-pos)
-               #f))]
+       (list (integer->bitvector (bytes->integer 
+                                   (subbytes c pc end-pos)
+                                   #f) (bitvector 256)))]
       ['(#f #t)
        (set-machine-state-stack! mu (drop stack pops))
        (take stack pops)
@@ -39,16 +41,25 @@
   (list (instruction-name inst) op))
 
 (define (init-machine-state [gas 300000])
-  (machine-state gas 0 '#() 0 '()))
+  (machine-state gas 0 (store mcell '()) 0 '()))
 
 (define (exec-instruction env mu t inst) 
   (define stack (machine-state-stack mu))
+  (define memory (machine-state-memory mu))
   (match-define (list i ops) inst)
   (match i
     ['push (set! stack (append ops stack))]
-    ['mstore (print ops)]
+    ['mstore 
+     (match-define (list offset value) ops) 
+     (for 
+      ([i (in-naturals)]
+       [byte (bitvector->bytes value)])
+      (update-store! memory (bvadd offset (bv i 256)) byte))]
+     ['callvalue (set! stack (append (list (transaction-value t)) stack))]
+     ['dup (set! stack (append (list (struct-copy (last ops)) ops stack)))]
     )
   (set-machine-state-stack! mu stack)
+  (print stack)
   (if (member i '(stop revert return))
    'stop 'continue))
 
