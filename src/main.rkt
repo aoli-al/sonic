@@ -2,6 +2,7 @@
 
 (require "interpreter/evm.rkt"
          "core/core.rkt"
+         "core/store.rkt"
          "abi/abi.rkt"
          "utils/decoder.rkt"
          racket/cmdline)
@@ -12,7 +13,7 @@
 (define (create-account 
           env
           #:value [value (bv 0 256)] 
-          #:store [store '#()] 
+          #:store [store (store scell '())] 
           #:code [code #"\0"])
   (define addr (generate-address))
   (dict-set! (environment-system-state env)

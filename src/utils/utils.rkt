@@ -18,6 +18,4 @@
                                  (lambda ()
                                    (system (string-append "python3 " script-path-string)))))))))
 
-(define (bytes->bitvector bs) 
- (map (lambda (b) (bv b 8)) bs))
 

@@ -7,18 +7,14 @@
 
 (provide (all-defined-out))
 
-(define (interpret e mu)
-  (match-define (list inst ops) (fetch e))
-  (define stack (machine-state-stack mu))
-  (case inst
-    [(push)
-     (set! stack (append ops stack))]
-     ))
-
 
 (define (fetch e mu t) 
   (define c (transaction-code t))
-  (define pc (machine-state-pc mu))
+  (define p (machine-state-pc mu))
+  (define pc 
+    (match p
+      [(? integer?) p]
+      [(bv _ _) (bitvector->integer p)]))
   (define inst (instruction-from-byte (bytes-ref c pc)))
   (set! pc (+ pc 1))
   (define op-size (instruction-operand-size inst))
@@ -33,8 +29,7 @@
                                    #f) (bitvector 256)))]
       ['(#f #t)
        (set-machine-state-stack! mu (drop stack pops))
-       (take stack pops)
-       ]
+       (take stack pops)]
       [else '()]
       ))
   (set-machine-state-pc! mu end-pos)
@@ -46,31 +41,43 @@
 (define (exec-instruction env mu t inst) 
   (define stack (machine-state-stack mu))
   (define memory (machine-state-memory mu))
+  (define contract (dict-ref (environment-system-state env) (transaction-code-address t)))
   (match-define (list i ops) inst)
   (match i
     ['push (set! stack (append ops stack))]
     ['mstore 
      (match-define (list offset value) ops) 
      (for 
-      ([i (in-naturals)]
-       [byte (bitvector->bytes value)])
-      (update-store! memory (bvadd offset (bv i 256)) byte))]
-     ['callvalue (set! stack (append (list (transaction-value t)) stack))]
-     ['dup (set! stack (append (list (struct-copy (last ops)) ops stack)))]
+       ([i (in-naturals)]
+        [byte (bitvector->bytes value)])
+       (update-store! memory (bvadd offset (bv i 256)) byte))]
+    ['callvalue (set! stack (append (list (transaction-value t)) stack))]
+    ['dup (set! stack (append (list (last ops) ops stack)))]
+    ['iszero (set! stack (append (list (bool->bitvector (bvzero? (car ops)))) stack))]
+    ['jumpi 
+     (match-define (list dest con) ops) 
+     (set-machine-state-pc! mu (if (bvzero? con) (machine-state-pc mu) dest))]
+    ['jumpdest (void)]
+    ['pop (void)]
+    ['codecopy 
+    (match-define (list dest-offset offset len) ops)
+    (for ([i (bitvector->integer len)]) 
+     (update-store! memory (bvadd dest-offset (bv i 256)) 
+                    (bv (bytes-ref (a-system-state-code contract) (+ (bitvector->integer offset) i)) 8)))]
+    ['return (print ops)]
     )
   (set-machine-state-stack! mu stack)
-  (print stack)
   (if (member i '(stop revert return))
-   'stop 'continue))
+    'stop 'continue))
 
 (define (exec-transaction env t) 
- (define mu (init-machine-state))
- (define run (lambda (env mu t)
-  (define inst (fetch env mu t))
-  (define res (exec-instruction env mu t inst))
-  (when (equal? res 'continue)
-   (run env mu t))))
- (run env mu t))
+  (define mu (init-machine-state))
+  (define run (lambda (env mu t)
+                (define inst (fetch env mu t))
+                (define res (exec-instruction env mu t inst))
+                (when (equal? res 'continue)
+                  (run env mu t))))
+  (run env mu t))
 
 (define (exec env pt) 
   (for ([t pt])
