@@ -52,7 +52,7 @@
         [byte (bitvector->bytes value)])
        (update-store! memory (bvadd offset (bv i 256)) byte))]
     ['callvalue (set! stack (append (list (transaction-value t)) stack))]
-    ['dup (set! stack (append (list (last ops) ops stack)))]
+    ['dup (set! stack (append (list (last ops)) ops stack))]
     ['iszero (set! stack (append (list (bool->bitvector (bvzero? (car ops)))) stack))]
     ['jumpi 
      (match-define (list dest con) ops) 
@@ -60,11 +60,17 @@
     ['jumpdest (void)]
     ['pop (void)]
     ['codecopy 
-    (match-define (list dest-offset offset len) ops)
-    (for ([i (bitvector->integer len)]) 
-     (update-store! memory (bvadd dest-offset (bv i 256)) 
-                    (bv (bytes-ref (a-system-state-code contract) (+ (bitvector->integer offset) i)) 8)))]
-    ['return (print ops)]
+     (match-define (list dest-offset offset len) ops)
+     (for ([i (bitvector->integer len)]) 
+       (update-store! memory (bvadd dest-offset (bv i 256)) 
+                      (bv (bytes-ref (a-system-state-code contract) (+ (bitvector->integer offset) i)) 8)))]
+    ['return 
+     (match-define (list offset len) ops)
+     (set-transaction-return! 
+       t
+       (map 
+         (lambda (i) (cell-value (find-or-create-cell memory (bvadd offset (bv i 256)))))
+         (range (bitvector->integer len))))]
     )
   (set-machine-state-stack! mu stack)
   (if (member i '(stop revert return))
@@ -81,4 +87,5 @@
 
 (define (exec env pt) 
   (for ([t pt])
-    (exec-transaction env t)))
+    (exec-transaction env t)
+    (print t)))

@@ -11,28 +11,22 @@
 
 (define (mcell-size mcell) 1)
 
-(define (set-mcell-value cell value) 
- (set-mcell-value! cell value))
-
 (struct mcell (offset [value #:mutable]) #:transparent
   #:methods gen:cell
   [(define cell-size mcell-size)
-   (define (cell-offset cell) mcell-offset)
-   (define (cell-value cell) mcell-value)
-   (define set-cell-value!  set-mcell-value)])
+   (define (cell-offset cell) (mcell-offset cell))
+   (define (cell-value cell) (mcell-value cell))
+   (define (set-cell-value! cell value)  (set-mcell-value! cell value))])
 
 
 (define (scell-size scell) 32)
 
-(define (set-scell-value cell value) 
-  (set-scell-value! cell value))
-
 (struct scell (offset [value #:mutable]) #:transparent
   #:methods gen:cell
   [(define cell-size scell-size)
-   (define (cell-offset cell) scell-offset)
-   (define (cell-value cell) scell-value)
-   (define (set-cell-value! cell value) set-scell-value)])
+   (define (cell-offset cell) (scell-offset cell))
+   (define (cell-value cell) (scell-value cell))
+   (define (set-cell-value! cell value) (set-scell-value! cell value))])
 
 (struct store (cell [ls #:mutable]) #:transparent)
 

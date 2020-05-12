@@ -4,7 +4,7 @@
 
 
 (struct instruction (name operand-size pops pushes gas) #:transparent)
-(struct transaction (code-address sender-address gas-price input execute-address value code depth write-permission) #:transparent)
+(struct transaction (code-address sender-address gas-price input execute-address value code depth write-permission [return #:mutable]) #:transparent)
 (struct machine-state (gas pc memory active-memory stack) #:mutable #:transparent)
 (struct a-system-state (value store code) #:mutable #:transparent)
 (struct environment (transactions system-state) #:mutable #:transparent)

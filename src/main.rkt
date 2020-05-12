@@ -38,8 +38,8 @@
   (define t (transaction code-addr addr (bv 1 256)
                          (make-symbolic-data (option/function)) addr (bv 0 256)
                          (a-system-state-code (dict-ref (environment-system-state env) code-addr))
-                         0 #t))
+                         0 #t #""))
   (exec env (list t)))
 
 (let [(filename (parse-command-line-options))]
-  (main filename))
+  (print (main filename)))
