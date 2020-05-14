@@ -42,6 +42,9 @@
   (define stack (machine-state-stack mu))
   (define memory (machine-state-memory mu))
   (define contract (dict-ref (environment-system-state env) (transaction-code-address t)))
+  (define binary-op (lambda (ops op converter)
+                      (match-define (list x y) ops) 
+                      (set! stack (append (list (converter (op x y))) stack))))
   (match-define (list i ops) inst)
   (match i
     ['push (set! stack (append ops stack))]
@@ -52,7 +55,7 @@
         [byte (bitvector->bytes value)])
        (update-store! memory (bvadd offset (bv i 256)) byte))]
     ['callvalue (set! stack (append (list (transaction-value t)) stack))]
-    ['shr (match-define (list s v) ops) (set! stack (append (list (bvlshr v s)) stack))]
+    ['shr (binary-op (reverse ops) bvlshr (lambda (x) x))]
     ['dup (set! stack (append (list (last ops)) ops stack))]
     ['iszero (set! stack (append (list (bool->bitvector (bvzero? (car ops)) 256)) stack))]
     ['jumpi 
@@ -84,7 +87,8 @@
      (set! stack (append (list (apply concat data)) stack))]
     ['lt (match-define (list x y) ops) 
      (set! stack (append (list (bool->bitvector (bvult x y) 256)) stack))]
-    )
+    ['lt (binary-op ops bvult (lambda (x) (bool->bitvector x 256)))]
+    ['eq (binary-op ops bveq (lambda (x) (bool->bitvector x 256)))])
   (set-machine-state-stack! mu stack)
   (println i)
   (println stack)
