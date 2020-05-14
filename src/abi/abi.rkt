@@ -12,7 +12,7 @@
 
 (define (function-hash func)
   (define hash-bytes (keccak-256 (string->bytes/utf-8 func)))
-  (bytes->bitvector (bytes->list (subbytes hash-bytes 0 8))))
+  (bytes->bitvector (bytes->list (subbytes hash-bytes 0 4))))
 
 (define (make-symbolic-arguments params) 
   (define parsed-params (parse-parameters params))

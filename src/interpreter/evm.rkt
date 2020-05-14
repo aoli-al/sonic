@@ -52,8 +52,9 @@
         [byte (bitvector->bytes value)])
        (update-store! memory (bvadd offset (bv i 256)) byte))]
     ['callvalue (set! stack (append (list (transaction-value t)) stack))]
+    ['shr (match-define (list s v) ops) (set! stack (append (list (bvlshr v s)) stack))]
     ['dup (set! stack (append (list (last ops)) ops stack))]
-    ['iszero (set! stack (append (list (bool->bitvector (bvzero? (car ops)))) stack))]
+    ['iszero (set! stack (append (list (bool->bitvector (bvzero? (car ops)) 256)) stack))]
     ['jumpi 
      (match-define (list dest con) ops) 
      (set-machine-state-pc! mu (if (bvzero? con) (machine-state-pc mu) dest))]
@@ -71,8 +72,22 @@
        (map 
          (lambda (i) (cell-value (find-or-create-cell memory (bvadd offset (bv i 256)))))
          (range (bitvector->integer len))))]
+    ['calldatasize (set! stack (append (list (bv (length (transaction-input t)) 256)) stack))]
+    ['calldataload
+     (define input (transaction-input t))
+     (define idx (bitvector->integer (car ops)))
+     (define data (map 
+                    (lambda (i) 
+                      (define offset (+ i idx)) 
+                      (if (< offset (length input)) (list-ref input (+ i idx)) (bv 0 8))) 
+                    (range 32)))
+     (set! stack (append (list (apply concat data)) stack))]
+    ['lt (match-define (list x y) ops) 
+     (set! stack (append (list (bool->bitvector (bvult x y) 256)) stack))]
     )
   (set-machine-state-stack! mu stack)
+  (println i)
+  (println stack)
   (if (member i '(stop revert return))
     'stop 'continue))
 
@@ -87,5 +102,6 @@
 
 (define (exec env pt) 
   (for ([t pt])
+   (println t)
     (exec-transaction env t)
     (print t)))

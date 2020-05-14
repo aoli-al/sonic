@@ -64,6 +64,12 @@
      (instruction 'not 0 1 1 3)]
     [(#x1a)
      (instruction 'byte 0 2 1 3)]
+    [(#x1b)
+     (instruction 'shl 0 2 1 3)]
+    [(#x1c)
+     (instruction 'shr 0 2 1 3)]
+    [(#x1d)
+     (instruction 'sar 0 2 1 3)]
     [(#x20)
      (instruction 'sha3 0 2 1 30)]
     [(#x30)
