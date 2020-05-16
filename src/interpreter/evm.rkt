@@ -54,6 +54,16 @@
        ([i (in-naturals)]
         [byte (bitvector->bytes value)])
        (update-store! memory (bvadd offset (bv i 256)) byte))]
+    ['mload
+     (define value
+       (apply concat
+              (map (lambda (idx) 
+                     (cell-value 
+                      (find-or-create-cell memory 
+                                          (bvadd (car ops) (bv idx 256)))))
+                   (range 32))))
+     (println value)
+     (set! stack (append (list value) stack))]
     ['callvalue (set! stack (append (list (transaction-value t)) stack))]
     ['shr (binary-op (reverse ops) bvlshr (lambda (x) x))]
     ['dup (set! stack (append (list (last ops)) ops stack))]
@@ -88,7 +98,11 @@
     ['lt (match-define (list x y) ops) 
      (set! stack (append (list (bool->bitvector (bvult x y) 256)) stack))]
     ['lt (binary-op ops bvult (lambda (x) (bool->bitvector x 256)))]
-    ['eq (binary-op ops bveq (lambda (x) (bool->bitvector x 256)))])
+    ['eq (binary-op ops bveq (lambda (x) (bool->bitvector x 256)))]
+    ['jump (set-machine-state-pc! mu (car ops))]
+    ['swap (match-define (list a b ... c) ops)
+     (set! stack (append (list c) b (list a) stack))]
+    )
   (set-machine-state-stack! mu stack)
   (println i)
   (println stack)
@@ -106,6 +120,6 @@
 
 (define (exec env pt) 
   (for ([t pt])
-   (println t)
+    (println t)
     (exec-transaction env t)
     (print t)))
