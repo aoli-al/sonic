@@ -62,10 +62,11 @@
                       (find-or-create-cell memory 
                                           (bvadd (car ops) (bv idx 256)))))
                    (range 32))))
-     (println value)
      (set! stack (append (list value) stack))]
     ['callvalue (set! stack (append (list (transaction-value t)) stack))]
     ['shr (binary-op (reverse ops) bvlshr (lambda (x) x))]
+    ['add (binary-op ops bvadd (lambda (x) x))]
+    ['sub (binary-op ops bvsub (lambda (x) x))]
     ['dup (set! stack (append (list (last ops)) ops stack))]
     ['iszero (set! stack (append (list (bool->bitvector (bvzero? (car ops)) 256)) stack))]
     ['jumpi 
@@ -104,8 +105,6 @@
      (set! stack (append (list c) b (list a) stack))]
     )
   (set-machine-state-stack! mu stack)
-  (println i)
-  (println stack)
   (if (member i '(stop revert return))
     'stop 'continue))
 
@@ -120,6 +119,5 @@
 
 (define (exec env pt) 
   (for ([t pt])
-    (println t)
     (exec-transaction env t)
-    (print t)))
+    (println t)))
