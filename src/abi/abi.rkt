@@ -68,7 +68,3 @@
      (append
        (function-hash func)
        (make-symbolic-arguments params))]))
-
-; (make-symbolic-data "batchTransfer(uint256)")
-; (function-hash "batchTransfer(uint256)")
-
