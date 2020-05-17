@@ -13,8 +13,9 @@
   (define p (machine-state-pc mu))
   (define pc 
     (match p
-      [(? integer?) p]
+      [(? exact-integer?) p]
       [(bv _ _) (bitvector->integer p)]))
+
   (define inst (instruction-from-byte (bytes-ref c pc)))
   (set! pc (+ pc 1))
   (define op-size (instruction-operand-size inst))
@@ -104,17 +105,20 @@
     ['swap (match-define (list a b ... c) ops)
      (set! stack (append (list c) b (list a) stack))]
     )
-  (set-machine-state-stack! mu stack)
+  (set-machine-state-stack! mu stack) 
   (if (member i '(stop revert return))
     'stop 'continue))
 
 (define (exec-transaction env t) 
   (define mu (init-machine-state))
-  (define run (lambda (env mu t)
-                (define inst (fetch env mu t))
-                (define res (exec-instruction env mu t inst))
-                (when (equal? res 'continue)
-                  (run env mu t))))
+  (define run 
+    (lambda (env mu t)
+     (for/all ([pc (machine-state-pc mu)])
+      (set-machine-state-pc! mu pc)
+      (define inst (fetch env mu t))
+      (define res (exec-instruction env mu t inst))
+      (when (equal? res 'continue)
+        (run env mu t)))))
   (run env mu t))
 
 (define (exec env pt) 
