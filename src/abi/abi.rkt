@@ -31,9 +31,9 @@
            (match-define (list prev-head prev-tail) prev)
            (match-define (list cur-head cur-tail)
              (match cur 
-               [(list 'uint _) (define-symbolic x (bitvector 256))
+               [(list 'uint _) (define-symbolic* x (bitvector 256))
                                (list (bitvector->bytes x) '())]
-               [(list 'int _) (define-symbolic x (bitvector 256))
+               [(list 'int _) (define-symbolic* x (bitvector 256))
                               (list (bitvector->bytes x) '())]
                [(list 'array type size) 
                 (match size
